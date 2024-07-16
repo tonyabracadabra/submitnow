@@ -1,100 +1,153 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useTransition } from "react";
+import { submitUrls } from "@/actions";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import useLocalStorage from "@/hooks/use-local-storage";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
+
+interface FormData {
+  host: string;
+  key: string;
+  apiKey: string;
+  urls: string;
+}
+
+export default function SubmitPage() {
+  const [host, setHost] = useLocalStorage<string>("host", "");
+  const [key, setKey] = useLocalStorage<string>("key", "");
+  const [apiKey, setApiKey] = useLocalStorage<string>("apiKey", "");
+  const [response, setResponse] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<FormData>({
+    defaultValues: {
+      host,
+      key,
+      apiKey,
+      urls: "",
+    },
+  });
+
+  const handleSubmit = async (data: FormData) => {
+    startTransition(async () => {
+      const urlList = data.urls
+        .split("\n")
+        .map((url) => url.trim())
+        .filter((url) => url);
+      const result = await submitUrls({ host: data.host, key: data.key, urlList, apiKey: data.apiKey });
+      setResponse(result.message);
+      setHost(data.host);
+      setKey(data.key);
+      setApiKey(data.apiKey);
+    });
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm text-center sm:text-left">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file-text.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="container mx-auto p-6 max-w-3xl">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">
+            Submit URLs to IndexNow and Google
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert className="mb-6">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Configuration Instructions</AlertTitle>
+            <AlertDescription>
+              <ol className="list-decimal list-inside space-y-2 mt-2">
+                <li><strong>Host:</strong> Enter your website&apos;s domain (e.g., example.com).</li>
+                <li><strong>Key:</strong> Create a unique key for IndexNow (e.g., your-unique-key).</li>
+                <li><strong>IndexNow Setup:</strong> Create a file named <code>[your-key].txt</code> (e.g., your-unique-key.txt) containing only your key, and upload it to your website&apos;s root folder (e.g., https://example.com/your-unique-key.txt).</li>
+                <li><strong>API Key:</strong> Enter your Google Indexing API key (JSON format).</li>
+                <li><strong>URLs:</strong> Enter the URLs you want to submit, one per line.</li>
+                <li><strong>Google Search Console:</strong> Set up your website in Google Search Console to track indexing and search performance. <a href="https://www.dannyhines.io/blog/vercel-website-gsc" target="_blank" rel="noopener noreferrer">Learn how to register your website</a>.</li>
+              </ol>
+            </AlertDescription>
+          </Alert>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="host"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Host</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter host (e.g., example.com)" className="w-full" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter your IndexNow key" className="w-full" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Google Indexing API Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter Google Indexing API key (JSON)" type="password" className="w-full" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="urls"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URLs</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Enter one URL per line" rows={10} className="w-full" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending ? "Submitting..." : "Submit"}
+              </Button>
+            </form>
+          </Form>
+          {response && (
+            <Alert className="mt-6" variant="default">
+              <AlertTitle>Submission Result</AlertTitle>
+              <AlertDescription>{response}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+      <Alert className="mt-4">
+        <InfoIcon className="h-4 w-4" />
+        <AlertTitle>Additional Information</AlertTitle>
+        <AlertDescription>
+          <p>To set up @Web for your website, follow these steps:</p>
+          <ol className="list-decimal list-inside space-y-2 mt-2">
+            <li>Go to your website&apos;s root directory</li>
+            <li>Create a file named <code>.well-known/atproto-did</code></li>
+            <li>Add your website&apos;s DID in the file</li>
+          </ol>
+          <p className="mt-2">For more detailed instructions, refer to the <a href="https://atproto.com/specs/did-web" target="_blank" rel="noopener noreferrer">official @Web DID specification</a>.</p>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
