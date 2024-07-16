@@ -5,11 +5,11 @@ Buckle up, web wizards! 🧙‍♂️ This Next.js project is about to turn your
 ## 🌟 Supercharged Features
 
 - 🚀 Turbocharge your URLs straight into IndexNow and Google's Indexing API
-- 🧠 Magic memory that remembers your config details (no more forgetting your keys!)
 - 😎 Interface so cool, even your grandma could use it (with clear instructions, of course)
 - 💪 Bulk URL submission power - because ain't nobody got time for one-by-one!
+- 🔒 Privacy-first approach: We never save your keys or sensitive information
 
 ## 🏁 Ready, Set, Go!
 
-1. 🐱‍💻 Clone this bad boy (repository, that is)
-2. 🎭 Install the dependencies (they're like the backstage crew for your URL show):
+1. 🌐 Visit our hosted version at [submitNow.vercel.app](https://submitnow.vercel.app)
+2. 📝 Enter your details (don't worry, we won't save them!)
