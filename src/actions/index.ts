@@ -2,8 +2,20 @@
 
 import { google } from "googleapis";
 
-export async function submitUrls({ host, key, urlList, apiKey }: { host: string; key: string; urlList: string[]; apiKey: string }) {
-  const keyLocation = `https://${host}/${key}.txt`;
+type SubmitUrlsParams = {
+  host: string;
+  indexnowKey: string;
+  urlList: string[];
+  googleApiKey: string;
+};
+
+type SubmitUrlsResult = {
+  success: boolean;
+  message: string;
+};
+
+export async function submitUrls({ host, indexnowKey, urlList, googleApiKey }: SubmitUrlsParams): Promise<SubmitUrlsResult> {
+  const keyLocation = `https://${host}/${indexnowKey}.txt`;
 
   // Ensure all URLs start with the full prefix
   const fullUrlList = urlList.map((url) =>
@@ -12,29 +24,29 @@ export async function submitUrls({ host, key, urlList, apiKey }: { host: string;
 
   const indexNowPayload = {
     host,
-    key,
+    key: indexnowKey,
     keyLocation,
     urlList: fullUrlList,
   };
 
-  const serviceAccountKey = JSON.parse(apiKey);
-
-  const jwtClient = new google.auth.JWT(
-    serviceAccountKey.client_email,
-    undefined,
-    serviceAccountKey.private_key,
-    ["https://www.googleapis.com/auth/indexing"],
-    undefined,
-  );
-
   try {
+    const serviceAccountKey = JSON.parse(googleApiKey);
+
+    const jwtClient = new google.auth.JWT(
+      serviceAccountKey.client_email,
+      undefined,
+      serviceAccountKey.private_key,
+      ["https://www.googleapis.com/auth/indexing"],
+      undefined,
+    );
+
     await jwtClient.authorize();
 
     const googleAccessToken = await jwtClient.getAccessToken();
 
     if (!googleAccessToken || !googleAccessToken.token) {
       console.error("Failed to obtain Google Access Token");
-      return { message: "Failed to obtain Google Access Token" };
+      return { success: false, message: "Failed to obtain Google Access Token" };
     }
 
     console.log("Google Access Token obtained successfully");
@@ -87,17 +99,18 @@ export async function submitUrls({ host, key, urlList, apiKey }: { host: string;
     if (!batchResponse.ok) {
       const batchErrorData = await batchResponse.text();
       console.error("Batch Request Error:", batchErrorData);
-      return { message: `Batch Request Error: ${batchErrorData}` };
+      return { success: false, message: `Batch Request Error: ${batchErrorData}` };
     }
 
     const batchResponseText = await batchResponse.text();
     console.log("Batch Response:", batchResponseText);
 
     return {
+      success: true,
       message: `${indexNowMessage} and URLs submitted successfully to Google Indexing API`,
     };
   } catch (error) {
     console.error("Error submitting URLs:", error);
-    return { message: "Internal server error" };
+    return { success: false, message: error instanceof Error ? error.message : "Internal server error" };
   }
 }

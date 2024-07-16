@@ -1,4 +1,5 @@
 import "@/globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata = {
   title: "Next.js",
@@ -12,7 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster position="top-center" />
+      </body>
     </html>
   );
 }
