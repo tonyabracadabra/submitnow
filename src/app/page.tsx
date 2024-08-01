@@ -80,6 +80,13 @@ export default function SubmitPage() {
     });
   };
 
+  // Update local storage when form values change
+  const handleFormChange = (name: keyof FormData, value: any) => {
+    if (name === 'host') setHost(value);
+    if (name === 'indexnowKey') setIndexnowKey(value);
+    if (name === 'googleApiKey') setApiKey(JSON.stringify(value));
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-6xl py-12">
       <div className="flex flex-col md:flex-row gap-8">
@@ -100,7 +107,15 @@ export default function SubmitPage() {
                       <FormItem>
                         <FormLabel>Host</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter host (e.g., example.com)" className="w-full" />
+                          <Input 
+                            {...field} 
+                            placeholder="Enter host (e.g., example.com)" 
+                            className="w-full" 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleFormChange('host', e.target.value);
+                            }}
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -112,7 +127,15 @@ export default function SubmitPage() {
                       <FormItem>
                         <FormLabel>IndexNow Key</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter your IndexNow key" className="w-full" />
+                          <Input 
+                            {...field} 
+                            placeholder="Enter your IndexNow key" 
+                            className="w-full" 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleFormChange('indexnowKey', e.target.value);
+                            }}
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -133,6 +156,7 @@ export default function SubmitPage() {
                               try {
                                 const parsedValue = JSON.parse(e.target.value);
                                 field.onChange(parsedValue);
+                                handleFormChange('googleApiKey', parsedValue);
                               } catch (error) {
                                 field.onChange(e.target.value);
                               }

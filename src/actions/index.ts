@@ -15,7 +15,7 @@ type SubmitUrlsResult = {
 };
 
 export async function submitUrls({ host, indexnowKey, urlList, googleApiKey }: SubmitUrlsParams): Promise<SubmitUrlsResult> {
-  const keyLocation = `https://${host}/${indexnowKey}.txt`;
+  const keyLocation = host.startsWith("https://") ? `${host}/${indexnowKey}.txt` : `http://${host}/${indexnowKey}.txt`;
 
   // Ensure all URLs start with the full prefix
   const fullUrlList = urlList.map((url) =>
